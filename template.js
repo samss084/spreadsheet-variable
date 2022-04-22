@@ -20,7 +20,18 @@ function sendGetRequest(accessToken, refreshToken) {
         let bodyParsed = JSON.parse(successResult.body);
 
         if (successResult.statusCode >= 200 && successResult.statusCode < 400) {
-            return data.type === 'cell' ? bodyParsed.values[0][0] : bodyParsed.values[0];
+            if (data.type === 'cell') {
+                return bodyParsed.values[0][0];
+            }
+
+            if (data.type === 'object') {
+                return bodyParsed.values.reduce((acc, curr) => {
+                    acc[curr[0]] = curr[1];
+                    return acc;
+                }, {});
+            }
+
+            return bodyParsed.values;
         } else if (successResult.statusCode === 401) {
             return updateAccessToken(refreshToken);
         } else {

@@ -32,12 +32,19 @@ ___TEMPLATE_PARAMETERS___
       {
         "value": "cell",
         "displayValue": "Read Cell",
-        "subParams": []
+        "subParams": [],
+        "help": "Returns value from google sheet cell"
       },
       {
         "value": "range",
         "subParams": [],
-        "displayValue": "Read Range"
+        "displayValue": "Read Range",
+        "help": "Returns arrays from google sheet cell range."
+      },
+      {
+        "value": "object",
+        "displayValue": "Read Two Columns",
+        "help": "Add a range that includes two columns. Variable returns an object that consists of these two columns. The first column will be used as a name, and the second column will be used as a correspondent value."
       }
     ],
     "simpleValueType": true,
@@ -72,6 +79,11 @@ ___TEMPLATE_PARAMETERS___
       {
         "paramName": "type",
         "paramValue": "range",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "type",
+        "paramValue": "object",
         "type": "EQUALS"
       }
     ],
@@ -180,7 +192,18 @@ function sendGetRequest(accessToken, refreshToken) {
         let bodyParsed = JSON.parse(successResult.body);
 
         if (successResult.statusCode >= 200 && successResult.statusCode < 400) {
-            return data.type === 'cell' ? bodyParsed.values[0][0] : bodyParsed.values[0];
+            if (data.type === 'cell') {
+                return bodyParsed.values[0][0];
+            }
+
+            if (data.type === 'object') {
+                return bodyParsed.values.reduce((acc, curr) => {
+                    acc[curr[0]] = curr[1];
+                    return acc;
+                }, {});
+            }
+
+            return bodyParsed.values;
         } else if (successResult.statusCode === 401) {
             return updateAccessToken(refreshToken);
         } else {
