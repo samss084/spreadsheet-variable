@@ -1,5 +1,7 @@
 homepage: "https://stape.io/"
 versions:
+  - sha: 9d93bcf5feb9af77df07d563744dfac20e2267f0
+    changeNotes: Update to correct naming.
   - sha: 01ac0b73447791063664b1ee819215650fe21d71
     changeNotes: Add Read Two Columns option.
   - sha: 2710daf87a54fdad6d239677f6959d03171d3748
