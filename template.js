@@ -1,22 +1,25 @@
 const JSON = require('JSON');
 const sendHttpRequest = require('sendHttpRequest');
 const encodeUriComponent = require('encodeUriComponent');
-const Firestore = require('Firestore');
+const getGoogleAuth = require('getGoogleAuth');
 
-let firebaseOptions = {};
-if (data.firebaseProjectId) firebaseOptions.projectId = data.firebaseProjectId;
+const spreadsheetId = data.url.replace('https://docs.google.com/spreadsheets/d/', '').split('/')[0];
+const requestUrl = getUrl();
+const auth = getGoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+});
 
-return Firestore.read(data.firebasePath, firebaseOptions)
-    .then((result) => {
-        return sendGetRequest(result.data.access_token, result.data.refresh_token);
-    }, () => {
-        return updateAccessToken(data.refreshToken);
-    });
+return sendGetRequest();
 
-function sendGetRequest(accessToken, refreshToken) {
-    const postUrl = getUrl();
-
-    return sendHttpRequest(postUrl, {headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken}, method: 'GET'}).then(successResult => {
+function sendGetRequest() {
+    let params = {
+        headers: {'Content-Type': 'application/json', }, 
+        method: 'GET'
+    };
+    if (data.authFlow === 'own') {
+        params.authorization = auth;
+    }
+    return sendHttpRequest(requestUrl, params).then(successResult => {
         let bodyParsed = JSON.parse(successResult.body);
 
         if (successResult.statusCode >= 200 && successResult.statusCode < 400) {
@@ -32,34 +35,34 @@ function sendGetRequest(accessToken, refreshToken) {
             }
 
             return bodyParsed.values;
-        } else if (successResult.statusCode === 401) {
-            return updateAccessToken(refreshToken);
         } else {
             return '';
         }
     });
 }
 
-function updateAccessToken(refreshToken) {
-    const authUrl = 'https://oauth2.googleapis.com/token';
-    const authBody = 'refresh_token='+enc(refreshToken || data.refreshToken)+'&client_id='+enc(data.clientId)+'&client_secret='+enc(data.clientSecret)+'&grant_type=refresh_token';
-
-    return sendHttpRequest(authUrl, {headers: {'Content-Type': 'application/x-www-form-urlencoded'}, method: 'POST'}, authBody).then((successResult) => {
-        if (successResult.statusCode >= 200 && successResult.statusCode < 400) {
-            let bodyParsed = JSON.parse(successResult.body);
-
-            return Firestore.write(data.firebasePath, bodyParsed, firebaseOptions)
-                .then((id) => {
-                    return sendGetRequest(bodyParsed.access_token, bodyParsed.refresh_token);
-                }, () => { return ''; });
-        } else {
-            return '';
-        }
-    });
-}
 
 function getUrl() {
-    let spreadsheetId = data.url.replace('https://docs.google.com/spreadsheets/d/', '').split('/')[0];
+    if (data.authFlow === 'stape') {
+        const containerKey = data.containerKey.split(':');
+        const containerZone = containerKey[0];
+        const containerIdentifier = containerKey[1];
+        const containerApiKey = containerKey[2];
+        const containerDefaultDomainEnd = containerKey[3] || 'io';
+      
+        return (
+          'https://' +
+          enc(containerIdentifier) +
+          '.' +
+          enc(containerZone) +
+          '.stape.' +
+          enc(containerDefaultDomainEnd) +
+          '/stape-api/' +
+          enc(containerApiKey) +    
+          '/v1/spreadsheet/auth-proxy?spreadsheetId=' + spreadsheetId +
+          '&range=' + enc(data.type === 'cell' ? data.cell : data.range)
+        );
+    }
 
     return 'https://content-sheets.googleapis.com/v4/spreadsheets/'+spreadsheetId+'/values/'+enc(data.type === 'cell' ? data.cell : data.range);
 }

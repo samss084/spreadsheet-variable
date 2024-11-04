@@ -102,66 +102,52 @@ ___TEMPLATE_PARAMETERS___
       {
         "type": "NON_EMPTY"
       }
-    ]
+    ],
+    "valueHint": "https://docs.google.com/spreadsheets/d/123456789/edit?"
   },
   {
-    "type": "TEXT",
-    "name": "refreshToken",
-    "displayName": "API Refresh Token",
-    "simpleValueType": true,
-    "help": "More info on how to get Authentication credentials \u003ca target\u003d\"_blank\" href\u003d\"https://developers.google.com/identity/protocols/oauth2/web-server\"\u003ecan be found by this link\u003c/a\u003e.",
-    "valueValidators": [
-      {
-        "type": "NON_EMPTY"
-      }
-    ]
-  },
-  {
-    "type": "TEXT",
-    "name": "clientId",
-    "displayName": "Client ID",
-    "simpleValueType": true,
-    "valueValidators": [
-      {
-        "type": "NON_EMPTY"
-      }
-    ]
-  },
-  {
-    "type": "TEXT",
-    "name": "clientSecret",
-    "displayName": "Client Secret",
-    "simpleValueType": true,
-    "valueValidators": [
-      {
-        "type": "NON_EMPTY"
-      }
-    ]
-  },
-  {
-    "displayName": "Firebase Settings",
-    "name": "firebaseGroup",
-    "groupStyle": "ZIPPY_CLOSED",
     "type": "GROUP",
+    "name": "authGropu",
+    "displayName": "Authentication Credentials",
+    "groupStyle": "NO_ZIPPY",
     "subParams": [
       {
-        "type": "TEXT",
-        "name": "firebaseProjectId",
-        "displayName": "Firebase Project ID",
-        "simpleValueType": true
+        "type": "RADIO",
+        "name": "authFlow",
+        "displayName": "Type",
+        "radioItems": [
+          {
+            "value": "stape",
+            "displayValue": "Stape Google Connection",
+            "help": "Learn how to setup Stape Google Sheet Connection \u003ca href\u003d\"https://app.stape.io/container/\" target\u003d\"_blank\"\u003ehere\u003c/a\u003e"
+          },
+          {
+            "value": "own",
+            "displayValue": "Own Google Credentials",
+            "help": "Uses Application Default Credentials to automatically find credentials from the server environment. \u003ca href\u003d\"https://cloud.google.com/docs/authentication/application-default-credentials\"\u003ehttps://cloud.google.com/docs/authentication/application-default-credentials\u003c/a\u003e"
+          }
+        ],
+        "simpleValueType": true,
+        "defaultValue": "stape"
       },
       {
         "type": "TEXT",
-        "name": "firebasePath",
-        "displayName": "Firebase Path",
+        "name": "containerKey",
+        "displayName": "Stape Container Api Key",
         "simpleValueType": true,
-        "help": "The tag uses Firebase to store the OAuth access token. You can choose any key for a document that will store the OAuth access token.",
+        "help": "It can be found in the detailed view of the container inside your \u003ca href\u003d\"https://app.stape.io/container/\" target\u003d\"_blank\"\u003eStape account.\u003c/a\u003e",
+        "enablingConditions": [
+          {
+            "paramName": "authFlow",
+            "paramValue": "stape",
+            "type": "EQUALS"
+          }
+        ],
         "valueValidators": [
           {
             "type": "NON_EMPTY"
           }
-        ],
-        "defaultValue": "stape/spreadsheet-auth"
+        ]
       }
     ]
   }
@@ -173,22 +159,25 @@ ___SANDBOXED_JS_FOR_SERVER___
 const JSON = require('JSON');
 const sendHttpRequest = require('sendHttpRequest');
 const encodeUriComponent = require('encodeUriComponent');
-const Firestore = require('Firestore');
+const getGoogleAuth = require('getGoogleAuth');
 
-let firebaseOptions = {};
-if (data.firebaseProjectId) firebaseOptions.projectId = data.firebaseProjectId;
+const spreadsheetId = data.url.replace('https://docs.google.com/spreadsheets/d/', '').split('/')[0];
+const requestUrl = getUrl();
+const auth = getGoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+});
 
-return Firestore.read(data.firebasePath, firebaseOptions)
-    .then((result) => {
-        return sendGetRequest(result.data.access_token, result.data.refresh_token);
-    }, () => {
-        return updateAccessToken(data.refreshToken);
-    });
+    return sendGetRequest();
 
-function sendGetRequest(accessToken, refreshToken) {
-    const postUrl = getUrl();
-
-    return sendHttpRequest(postUrl, {headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken}, method: 'GET'}).then(successResult => {
+function sendGetRequest() {
+    let params = {
+        headers: {'Content-Type': 'application/json', }, 
+        method: 'GET'
+    };
+    if (data.authFlow === 'own') {
+        params.authorization = auth;
+    }
+    return sendHttpRequest(requestUrl, params).then(successResult => {
         let bodyParsed = JSON.parse(successResult.body);
 
         if (successResult.statusCode >= 200 && successResult.statusCode < 400) {
@@ -204,34 +193,34 @@ function sendGetRequest(accessToken, refreshToken) {
             }
 
             return bodyParsed.values;
-        } else if (successResult.statusCode === 401) {
-            return updateAccessToken(refreshToken);
         } else {
             return '';
         }
     });
 }
 
-function updateAccessToken(refreshToken) {
-    const authUrl = 'https://oauth2.googleapis.com/token';
-    const authBody = 'refresh_token='+enc(refreshToken || data.refreshToken)+'&client_id='+enc(data.clientId)+'&client_secret='+enc(data.clientSecret)+'&grant_type=refresh_token';
-
-    return sendHttpRequest(authUrl, {headers: {'Content-Type': 'application/x-www-form-urlencoded'}, method: 'POST'}, authBody).then((successResult) => {
-        if (successResult.statusCode >= 200 && successResult.statusCode < 400) {
-            let bodyParsed = JSON.parse(successResult.body);
-
-            return Firestore.write(data.firebasePath, bodyParsed, firebaseOptions)
-                .then((id) => {
-                    return sendGetRequest(bodyParsed.access_token, bodyParsed.refresh_token);
-                }, () => { return ''; });
-        } else {
-            return '';
-        }
-    });
-}
 
 function getUrl() {
-    let spreadsheetId = data.url.replace('https://docs.google.com/spreadsheets/d/', '').split('/')[0];
+    if (data.authFlow === 'stape') {
+        const containerKey = data.containerKey.split(':');
+        const containerZone = containerKey[0];
+        const containerIdentifier = containerKey[1];
+        const containerApiKey = containerKey[2];
+        const containerDefaultDomainEnd = containerKey[3] || 'io';
+      
+        return (
+          'https://' +
+          enc(containerIdentifier) +
+          '.' +
+          enc(containerZone) +
+          '.stape.' +
+          enc(containerDefaultDomainEnd) +
+          '/stape-api/' +
+          enc(containerApiKey) +    
+          '/v1/spreadsheet/auth-proxy?spreadsheetId=' + spreadsheetId +
+          '&range=' + enc(data.type === 'cell' ? data.cell : data.range)
+        );
+    }
 
     return 'https://content-sheets.googleapis.com/v4/spreadsheets/'+spreadsheetId+'/values/'+enc(data.type === 'cell' ? data.cell : data.range);
 }
@@ -245,59 +234,6 @@ function enc(data) {
 ___SERVER_PERMISSIONS___
 
 [
-  {
-    "instance": {
-      "key": {
-        "publicId": "access_firestore",
-        "versionId": "1"
-      },
-      "param": [
-        {
-          "key": "allowedOptions",
-          "value": {
-            "type": 2,
-            "listItem": [
-              {
-                "type": 3,
-                "mapKey": [
-                  {
-                    "type": 1,
-                    "string": "projectId"
-                  },
-                  {
-                    "type": 1,
-                    "string": "path"
-                  },
-                  {
-                    "type": 1,
-                    "string": "operation"
-                  }
-                ],
-                "mapValue": [
-                  {
-                    "type": 1,
-                    "string": "*"
-                  },
-                  {
-                    "type": 1,
-                    "string": "*"
-                  },
-                  {
-                    "type": 1,
-                    "string": "read_write"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ]
-    },
-    "clientAnnotations": {
-      "isEditedByUser": true
-    },
-    "isRequired": true
-  },
   {
     "instance": {
       "key": {
@@ -324,6 +260,40 @@ ___SERVER_PERMISSIONS___
               {
                 "type": 1,
                 "string": "https://content-sheets.googleapis.com/"
+              },
+              {
+                "type": 1,
+                "string": "https://*.stape.io/*"
+              },
+              {
+                "type": 1,
+                "string": "https://*.stape.net/*"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "clientAnnotations": {
+      "isEditedByUser": true
+    },
+    "isRequired": true
+  },
+  {
+    "instance": {
+      "key": {
+        "publicId": "use_google_credentials",
+        "versionId": "1"
+      },
+      "param": [
+        {
+          "key": "allowedScopes",
+          "value": {
+            "type": 2,
+            "listItem": [
+              {
+                "type": 1,
+                "string": "https://www.googleapis.com/auth/spreadsheets"
               }
             ]
           }
