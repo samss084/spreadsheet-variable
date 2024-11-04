@@ -13,7 +13,7 @@ Google Sheets reader variable allows reading data from Google Sheet and add use 
 - [Server Google Tag Manager container](https://stape.io/blog/how-to-set-up-google-tag-manager-server-side-container)
 - [Google Service Account](https://stape.io/blog/write-data-from-server-google-tag-manager-to-google-sheets#1-google-service-account)
 - [Google Sheet Authentication](https://stape.io/blog/write-data-from-server-google-tag-manager-to-google-sheets#2-google-sheet-authentication)
-- [Firebase account](https://stape.io/blog/write-data-from-server-google-tag-manager-to-google-sheets#3-firebase-account)
+
 
 ### How to use Google Sheet tag
 
