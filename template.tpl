@@ -129,25 +129,6 @@ ___TEMPLATE_PARAMETERS___
         ],
         "simpleValueType": true,
         "defaultValue": "stape"
-      },
-      {
-        "type": "TEXT",
-        "name": "containerKey",
-        "displayName": "Stape Container Api Key",
-        "simpleValueType": true,
-        "help": "It can be found in the detailed view of the container inside your \u003ca href\u003d\"https://app.stape.io/container/\" target\u003d\"_blank\"\u003eStape account.\u003c/a\u003e",
-        "enablingConditions": [
-          {
-            "paramName": "authFlow",
-            "paramValue": "stape",
-            "type": "EQUALS"
-          }
-        ],
-        "valueValidators": [
-          {
-            "type": "NON_EMPTY"
-          }
-        ]
       }
     ]
   }
@@ -160,6 +141,7 @@ const JSON = require('JSON');
 const sendHttpRequest = require('sendHttpRequest');
 const encodeUriComponent = require('encodeUriComponent');
 const getGoogleAuth = require('getGoogleAuth');
+const getRequestHeader = require('getRequestHeader');
 
 const spreadsheetId = data.url.replace('https://docs.google.com/spreadsheets/d/', '').split('/')[0];
 const requestUrl = getUrl();
@@ -202,19 +184,15 @@ function sendGetRequest() {
 
 function getUrl() {
     if (data.authFlow === 'stape') {
-        const containerKey = data.containerKey.split(':');
-        const containerZone = containerKey[0];
-        const containerIdentifier = containerKey[1];
-        const containerApiKey = containerKey[2];
-        const containerDefaultDomainEnd = containerKey[3] || 'io';
+        const containerIdentifier = getRequestHeader('x-gtm-identifier');
+        const defaultDomain = getRequestHeader('x-gtm-default-domain');
+        const containerApiKey = getRequestHeader('x-gtm-api-key');
       
         return (
           'https://' +
           enc(containerIdentifier) +
           '.' +
-          enc(containerZone) +
-          '.stape.' +
-          enc(containerDefaultDomainEnd) +
+          enc(defaultDomain) +
           '/stape-api/' +
           enc(containerApiKey) +    
           '/v1/spreadsheet/auth-proxy?spreadsheetId=' + spreadsheetId +
