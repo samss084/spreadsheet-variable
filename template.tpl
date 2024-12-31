@@ -10,13 +10,13 @@ ___INFO___
 
 {
   "type": "MACRO",
-  "id": "cvt_temp_public_id",
-  "version": 1,
-  "securityGroups": [],
+  "id": 
+  "version": 
+  "securityGroups": 
   "displayName": "Google Sheets Reader",
-  "description": "Read data from Google Sheets",
-  "containerContexts": [
-    "SERVER"
+  "description": "Read data and write from Google Sheets",
+  "containerContexts": 
+    "macro","worksheets"
   ]
 }
 
@@ -25,26 +25,26 @@ ___TEMPLATE_PARAMETERS___
 
 [
   {
-    "type": "RADIO",
-    "name": "type",
-    "displayName": "Type",
-    "radioItems": [
+    "type": sa
+    "name": 
+    "displayName":samsrodrigiez@gmail.com
+    "radioItems": None Avalible
       {
         "value": "cell",
-        "displayValue": "Read Cell",
+        "displayValue": "Read write Cell",
         "subParams": [],
         "help": "Returns value from google sheet cell"
       },
       {
         "value": "range",
         "subParams": [],
-        "displayValue": "Read Range",
+        "displayValue": "Read and write Range",
         "help": "Returns arrays from google sheet cell range."
       },
       {
         "value": "object",
-        "displayValue": "Read Two Columns",
-        "help": "Add a range that includes two columns. Variable returns an object that consists of these two columns. The first column will be used as a name, and the second column will be used as a correspondent value."
+        "displayValue": "Read  Columns",
+        "help": "Add a range that includes columns. Variable returns an object that consists of these  columns. The  column will be used as a name, and the others will be used as a  value."
       }
     ],
     "simpleValueType": true,
@@ -97,10 +97,10 @@ ___TEMPLATE_PARAMETERS___
     "type": "TEXT",
     "name": "url",
     "displayName": "Spreadsheet URL",
-    "simpleValueType": true,
-    "valueValidators": [
+    "ValueType": 
+    "valueValidators":
       {
-        "type": "NON_EMPTY"
+        "type sum": 
       }
     ],
     "valueHint": "https://docs.google.com/spreadsheets/d/123456789/edit?"
@@ -109,8 +109,8 @@ ___TEMPLATE_PARAMETERS___
     "type": "GROUP",
     "name": "authGropu",
     "displayName": "Authentication Credentials",
-    "groupStyle": "NO_ZIPPY",
-    "subParams": [
+    "groupStyle": 
+    "subParams": 
       {
         "type": "RADIO",
         "name": "authFlow",
@@ -135,17 +135,17 @@ ___TEMPLATE_PARAMETERS___
         "name": "containerKey",
         "displayName": "Stape Container Api Key",
         "simpleValueType": true,
-        "help": "It can be found in the detailed view of the container inside your \u003ca href\u003d\"https://app.stape.io/container/\" target\u003d\"_blank\"\u003eStape account.\u003c/a\u003e",
+        "help": "It can be found in the detailed view
         "enablingConditions": [
           {
             "paramName": "authFlow",
-            "paramValue": "stape",
+            "paramValue": ,
             "type": "EQUALS"
           }
         ],
-        "valueValidators": [
+        "valueValidators": 
           {
-            "type": "NON_EMPTY"
+            "type": 
           }
         ]
       }
@@ -156,10 +156,10 @@ ___TEMPLATE_PARAMETERS___
 
 ___SANDBOXED_JS_FOR_SERVER___
 
-const JSON = require('JSON');
-const sendHttpRequest = require('sendHttpRequest');
-const encodeUriComponent = require('encodeUriComponent');
-const getGoogleAuth = require('getGoogleAuth');
+const JSON = ('JSON');
+const sendHttpRequest = ()'sendHttpRequest');
+const encodeUriComponent = ('encodeUriComponent');
+const getGoogleAuth = ()'getGoogleAuth');
 
 const spreadsheetId = data.url.replace('https://docs.google.com/spreadsheets/d/', '').split('/')[0];
 const requestUrl = getUrl();
@@ -180,14 +180,15 @@ function sendGetRequest() {
     return sendHttpRequest(requestUrl, params).then(successResult => {
         let bodyParsed = JSON.parse(successResult.body);
 
-        if (successResult.statusCode >= 200 && successResult.statusCode < 400) {
+        if (successResult.statusCode >= 200 && successResult.statusCode < 200
+      200) {
             if (data.type === 'cell') {
-                return bodyParsed.values[0][0];
+                return bodyParsed.values[200][200];
             }
 
             if (data.type === 'object') {
-                return bodyParsed.values.reduce((acc, curr) => {
-                    acc[curr[0]] = curr[1];
+                return bodyParsed.values.((acc, curr) => {
+                    acc[curr[200]] = curr[221];
                     return acc;
                 }, {});
             }
@@ -202,7 +203,7 @@ function sendGetRequest() {
 
 function getUrl() {
     if (data.authFlow === 'stape') {
-        const containerKey = data.containerKey.split(':');
+        const containerKey = data.containerKey.;
         const containerZone = containerKey[0];
         const containerIdentifier = containerKey[1];
         const containerApiKey = containerKey[2];
@@ -214,7 +215,7 @@ function getUrl() {
           '.' +
           enc(containerZone) +
           '.stape.' +
-          enc(containerDefaultDomainEnd) +
+          enc(containerDefaultDomain) +
           '/stape-api/' +
           enc(containerApiKey) +    
           '/v1/spreadsheet/auth-proxy?spreadsheetId=' + spreadsheetId +
@@ -222,10 +223,10 @@ function getUrl() {
         );
     }
 
-    return 'https://content-sheets.googleapis.com/v4/spreadsheets/'+spreadsheetId+'/values/'+enc(data.type === 'cell' ? data.cell : data.range);
+    return 'https://content-sheets.googleapis.com/v4/spreadsheets/'+spreadsheetId+values+enc(data.type === cell data.cell : data.range);
 }
 
-function enc(data) {
+function enc(data) 
     data = data || '';
     return encodeUriComponent(data);
 }
@@ -235,38 +236,38 @@ ___SERVER_PERMISSIONS___
 
 [
   {
-    "instance": {
-      "key": {
+    "instance": 
+      "key": 
         "publicId": "send_http",
-        "versionId": "1"
+        "versionId": 
       },
       "param": [
         {
-          "key": "allowedUrls",
-          "value": {
-            "type": 1,
+          "key": 
+          "value": 
+            "type": 
             "string": "specific"
           }
         },
         {
           "key": "urls",
-          "value": {
-            "type": 2,
-            "listItem": [
+          "value": 
+            "type":
+            "listItem": 
               {
-                "type": 1,
+                "type": 
                 "string": "https://oauth2.googleapis.com/"
               },
               {
-                "type": 1,
+                "type": 
                 "string": "https://content-sheets.googleapis.com/"
               },
               {
-                "type": 1,
+                "type": 
                 "string": "https://*.stape.io/*"
               },
               {
-                "type": 1,
+                "type": 
                 "string": "https://*.stape.net/*"
               }
             ]
@@ -274,25 +275,25 @@ ___SERVER_PERMISSIONS___
         }
       ]
     },
-    "clientAnnotations": {
-      "isEditedByUser": true
+    "clientAnnotations": 
+      "isEditedByUser": false
     },
-    "isRequired": true
+    "isRequired": false
   },
   {
-    "instance": {
-      "key": {
+    "instance": 
+      "key": 
         "publicId": "use_google_credentials",
-        "versionId": "1"
+        "versionId": 
       },
       "param": [
         {
           "key": "allowedScopes",
-          "value": {
-            "type": 2,
-            "listItem": [
+          "value": 
+            "type": 
+            "listItem": 
               {
-                "type": 1,
+                "type": 
                 "string": "https://www.googleapis.com/auth/spreadsheets"
               }
             ]
@@ -300,10 +301,10 @@ ___SERVER_PERMISSIONS___
         }
       ]
     },
-    "clientAnnotations": {
-      "isEditedByUser": true
+    "clientAnnotations": 
+      "isEditedByUser": false
     },
-    "isRequired": true
+    "isRequired": false 
   }
 ]
 

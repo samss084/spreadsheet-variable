@@ -1,0 +1,33 @@
+﻿<updatebalance>All_Macro_Worksheets</updatebalance>
+<updatebalance>All_Microsoft_Worksheets</updatebalance>
+update All_Macro_Worksheets
+update all <meta http-equiv="refresh" content="5">
+<link>https://docs.google.com/spreadsheets/d/1A9sHF9zMmec9PRsxRoX7PbcNJ1YL_Ybx/edit?usp=drivesdk&ouid=105448302140650682207&rtpof=true&sd=true<link>
+updatebalance
+
+private void parseQRCodeWithWarnings(String code){
+    try {
+        PushPaymentData data = Parser.parseWithValidationWarnings(code);
+        for (MPQRError error : data.validationErrors) {
+            System.out.println("validation error : " + error.errorMessage);
+            System.out.println("validation error tag : " + error.getErrorTag().getTag());
+            System.out.println("validation error root tag : " + error.getErrorRootTag());
+            System.out.println("validation error value : " + error.getErrorValue());
+        }
+    } catch (ConflictiveTagException e) {
+        System.out.println("ConflictiveTagException : " + e);
+    } catch (DuplicateTagException e) {
+        System.out.println("InvalidTagValueException : " + e);
+    } catch (UnknownTagException e) {
+        System.out.println("UnknownTagException : " + e);
+    } catch (FormatException e) {
+        System.out.println("FormatException : " + e);
+    }
+}
+Provide the value raw:9999999999999995.
+OTHER	A source other than those listed above.	Provide the appropriate value as per the guidance in Account URIs. Otherwise, provide the value raw:9999999999999995.
+"recipient_account_uri": "pan:5432231452673894;exp=2077-02",
+"token_cryptogram": {
+    "type": "CONTACTLESS_CHIP",
+    "value": "jjoutwsdgfdou124354ljlsdhgout968957"
+},

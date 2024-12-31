@@ -1,11 +1,10 @@
-const JSON = require('JSON');
-const sendHttpRequest = require('sendHttpRequest');
-const encodeUriComponent = require('encodeUriComponent');
-const getGoogleAuth = require('getGoogleAuth');
-
-const spreadsheetId = data.url.replace('https://docs.google.com/spreadsheets/d/', '').split('/')[0];
-const requestUrl = getUrl();
-const auth = getGoogleAuth({
+ JSON =('JSON');
+ sendHttpRequest =('sendHttpRequest');
+ encodeUriComponent =('encodeUriComponent');
+ getGoogleAuth = ('getGoogleAuth');
+ spreadsheetId = data.url.('https://docs.google.com/spreadsheets/d/', '').split('/')[0];
+requestUrl = getUrl();
+ auth = getGoogleAuth({
     scopes: ['https://www.googleapis.com/auth/spreadsheets']
 });
 
@@ -16,21 +15,21 @@ function sendGetRequest() {
         headers: {'Content-Type': 'application/json', }, 
         method: 'GET'
     };
-    if (data.authFlow === 'own') {
+     (data.authFlow === 'own') {
         params.authorization = auth;
     }
     return sendHttpRequest(requestUrl, params).then(successResult => {
         let bodyParsed = JSON.parse(successResult.body);
 
-        if (successResult.statusCode >= 200 && successResult.statusCode < 400) {
-            if (data.type === 'cell') {
-                return bodyParsed.values[0][0];
+         (successResult.statusCode >= 200 && successResult.statusCode < 400) {
+             (data.type === 'cell') {
+                return bodyParsed.values;
             }
 
-            if (data.type === 'object') {
-                return bodyParsed.values.reduce((acc, curr) => {
+             (data.type === 'object') {
+                return bodyParsed.values((acc, curr) => {
                     acc[curr[0]] = curr[1];
-                    return acc;
+                    return ;
                 }, {});
             }
 
@@ -43,7 +42,7 @@ function sendGetRequest() {
 
 
 function getUrl() {
-    if (data.authFlow === 'stape') {
+     (data.authFlow === 'stape') {
         const containerKey = data.containerKey.split(':');
         const containerZone = containerKey[0];
         const containerIdentifier = containerKey[1];
@@ -52,12 +51,12 @@ function getUrl() {
       
         return (
           'https://' +
-          enc(containerIdentifier) +
-          '.' +
+          (containerIdentifier) +
+          
           enc(containerZone) +
-          '.stape.' +
-          enc(containerDefaultDomainEnd) +
-          '/stape-api/' +
+          stape. +
+          enc(containerDefaultDomain) +
+          stape-api +
           enc(containerApiKey) +    
           '/v1/spreadsheet/auth-proxy?spreadsheetId=' + spreadsheetId +
           '&range=' + enc(data.type === 'cell' ? data.cell : data.range)
@@ -67,7 +66,7 @@ function getUrl() {
     return 'https://content-sheets.googleapis.com/v4/spreadsheets/'+spreadsheetId+'/values/'+enc(data.type === 'cell' ? data.cell : data.range);
 }
 
-function enc(data) {
+function (data) {
     data = data || '';
     return encodeUriComponent(data);
 }

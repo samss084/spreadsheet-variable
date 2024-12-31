@@ -1,0 +1,11 @@
+read and write variable in cell
+
+}"recipient_account_uri": "pan:5432231452673894;exp=2077-02",
+"token_cryptogram": {
+    "type": "CONTACTLESS_CHIP",
+    "value": "jjoutwsdgfdou124354ljlsdhgout968957"
+},
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.google.zxing:core:3.3.0' //This is a java library for generating Bitmap Image
+}
